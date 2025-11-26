@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # Service de base de données PostgreSQL
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      # Ces variables définissent les identifiants de connexion (À sécuriser en production !)
+      POSTGRES_USER: user_rag
+      POSTGRES_PASSWORD: password_rag
+      POSTGRES_DB: rag_database
+    # Expose le port 5432 du conteneur au port 5432 de votre machine
+    ports:
+      - "5432:5432"
+    # Crée un volume pour persister les données, même si le conteneur est arrêté/recréé
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_rag -d rag_database"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:

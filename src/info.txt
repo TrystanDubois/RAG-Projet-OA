@@ -1,0 +1,8 @@
+On mettra un fichier docker à la racine qui s'executera de manière séparé et accessible grace au réseau docker
+
+/register : nouvel user dans BDD
+/token : authentifie user
+/user/me : verifie user et retourne ses infos 
+
+App.jsx <=> interface affichant Chat 
+On lui a ajouté un composant "Parent" qui gére la connexion des utilisateurs (LoginPage.jsx)

@@ -1,0 +1,94 @@
+/* index.css (Version Professionnelle) */
+
+:root {
+  /* ==================================== */
+  /* Couleurs de base (Thème Clair) */
+  /* ==================================== */
+  --primary-blue: #535BF2; 
+  
+  /* NOUVEAU: Fond principal très clair ou blanc */
+  --light-bg: #EAEFF4; 
+  /* ANCIEN FOND FONCÉ pour les éléments sombres */
+  --dark-blue-bg: #1A1A2E; 
+
+  /* NOUVEAU: Fond de la carte de connexion (Blanc pur pour le contraste) */
+  --card-bg: #FFFFFF; 
+  
+  /* Texte */
+  --text-dark: #1E293B; /* Texte principal noir ou bleu très foncé */
+  --text-light-grey: #64748B; /* Texte secondaire, labels, etc. */
+  --bg-white: #FFFFFF; 
+
+  /* Input/Formulaire */
+  --input-bg: var(--light-bg); /* Fond des champs de saisie (clair) */
+  --input-border: #E2E8F0; /* Bordure des champs (très clair) */
+  --input-placeholder: #94A3B8; 
+
+  /* Ombre plus subtile pour le light mode */
+  --shadow-dark: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+  /* Sidebar (On peut garder un fond plus soutenu pour la sidebar pour la distinguer) */
+  --sidebar-bg: #FFFFFF; /* Gardons la sidebar blanche dans ce mode */
+}
+
+/* ------------------------------------- */
+
+body {
+  margin: 0;
+  display: flex; 
+  justify-content: center; 
+  align-items: center;    
+  min-width: 320px;
+  min-height: 100vh;
+  
+  /* Retirons l'ancien background-color */
+  /* background-color: var(--light-bg); */
+
+  /* NOUVEAU: Ajout du style pour l'animation */
+  color: var(--text-dark); 
+  
+  /* Réglages pour l'arrière-plan animé */
+  background: linear-gradient(-45deg, #e4e7ee, var(--light-bg), #d8e2ed, #e8eaf0);
+  background-size: 400% 400%;
+  animation: gradientAnimation 15s ease infinite; /* 15 secondes pour une boucle lente */
+}
+
+/* ------------------------------------- */
+
+/* DÉFINITION DE L'ANIMATION */
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+#root {
+  display: flex;
+  height: 100vh;
+}
+
+/* Style de survol dynamique pour les éléments de navigation */
+.sidebar-item {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.sidebar-item:hover {
+  background-color: var(--input-bg); /* Surlignage subtil */
+  color: var(--text-dark); /* Conserve le texte sombre (le style du composant gère l'inverse pour l'actif) */
+}
+.sidebar-item.active {
+  background-color: var(--primary-blue) !important;
+  color: var(--bg-white) !important;
+}
+
+/* Styles pour les avatars/icônes */
+.avatar-user {
+  background-color: var(--primary-blue);
+}
+.avatar-ai {
+  background-color: var(--text-light-grey); /* Gris foncé pour l'IA */
+}

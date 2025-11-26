@@ -1,0 +1,60 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Frontend Node/JS
+node_modules
+dist
+dist-ssr
+*.local
+build/ # Au cas où vous utilisez une commande 'build'
+
+# Sécurité / Confidentialité : CLÉS API, SECRETS, ETC.
+# Pour ignorer .env à la racine ET dans les sous-dossiers (comme src/.env)
+.env
+*.env
+**/.env
+**/*.env 
+
+# PYTHON / FASTAPI
+# Environnement virtuel Python
+venv/
+.venv/
+
+# Cache et compilé Python
+__pycache__/
+# Ignore __pycache__ dans tous les sous-dossiers (comme src/__pycache__)
+**/__pycache__/ 
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# BASE DE DONNÉES RAG / CACHE
+# Dossiers de persistance de Chroma DB
+chroma_db_wikipedia/
+chroma_db_rag/
+# Fichiers de BDD locaux (pour PostgreSQL/SQLite si utilisés)
+*.sqlite3
+*.db
+# Si vous utilisez des dossiers de BDD dans src/
+**/chroma_db_wikipedia/
+**/chroma_db_rag/
+
+
+# Éditeurs et OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+# S'assure d'ignorer .DS_Store n'importe où
+**/.DS_Store 
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
