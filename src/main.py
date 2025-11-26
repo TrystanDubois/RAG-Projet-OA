@@ -17,8 +17,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 # Imports des utilitaires BDD et Auth 
-from auth_database import get_db, User, create_tables
+from auth_database import get_db, User, create_tables, UserParameters
 from auth_utils import get_password_hash, verify_password, create_access_token, decode_token
+from models import UserParametersBase
 
 
 from langchain_openai import OpenAIEmbeddings
@@ -296,6 +297,85 @@ def login_for_access_token(
     # 4. Si la vérification est réussie, on génère le token
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
+
+# --- UTILS POUR LES ROUTES SÉCURISÉES ---
+
+# Fonction pour obtenir l'utilisateur connecté via le token
+async def get_current_user_from_token(
+    token: Annotated[str, Depends(oauth2_scheme)], 
+    db: Session = Depends(get_db)
+):
+    # 1. Décoder le token pour obtenir le payload (dictionnaire)
+    # Renommage de la variable pour plus de clarté
+    payload = decode_token(token) 
+    
+    # 2. Extraire la valeur de l'email à partir de la clé 'sub' du payload
+    email: str = payload.get("sub")
+    
+    # Vérification de sécurité supplémentaire
+    if email is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token data is invalid or missing email",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # 3. La requête de filtrage SQL fonctionne maintenant avec une chaîne de caractères (email)
+    # Ligne 307 corrigée
+    user = db.query(User).filter(User.email == email).first() 
+    
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    return user
+
+# --- ROUTES POUR LA GESTION DES INFORMATIONS UTILISATEUR ---
+
+@app.get("/user/parameters", response_model=UserParametersBase)
+def read_user_parameters(
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db)
+):
+    """
+    Récupère les informations spécifiques de l'utilisateur connecté.
+    Si l'utilisateur n'a pas encore d'informations (nouvelle inscription), renvoie des valeurs nulles.
+    """
+    # Tente de trouver les paramètres existants
+    parameters = db.query(UserParameters).filter(UserParameters.user_id == current_user.id).first()
+    
+    if parameters is None:
+        # Si aucun paramètre n'existe, renvoie un objet avec des valeurs par défaut/nulles
+        return UserParametersBase()
+        
+    return parameters
+
+@app.post("/user/parameters", response_model=UserParametersBase)
+def update_user_parameters(
+    params_data: UserParametersBase,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db)
+):
+    """
+    Crée ou met à jour les informations spécifiques de l'utilisateur connecté.
+    """
+    parameters = db.query(UserParameters).filter(UserParameters.user_id == current_user.id).first()
+
+    if parameters:
+        # Mise à jour des champs existants
+        for field, value in params_data.model_dump().items():
+            setattr(parameters, field, value)
+    else:
+        # Création d'un nouvel enregistrement si les paramètres n'existent pas encore
+        parameters = UserParameters(user_id=current_user.id, **params_data.model_dump())
+        db.add(parameters)
+
+    db.commit()
+    db.refresh(parameters)
+    return parameters
 
 @app.post("/update_rag", status_code=status.HTTP_200_OK)
 def update_rag_endpoint(

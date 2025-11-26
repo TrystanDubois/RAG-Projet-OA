@@ -1,9 +1,9 @@
 # src/auth_database.py
 #pont entre appli Python (FastAPI) et le serveur PostgreSQL (docker)
 #permet de gérer l'accès aux données
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, Date 
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 from typing import Generator
 
 # --- 1. Configuration de la connexion PostgreSQL ---
@@ -31,7 +31,29 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     # Ce champ stockera le mot de passe HACHÉ et sécurisé
     hashed_password = Column(String) 
+    parameters = relationship("UserParameters", back_populates="owner", uselist=False)
 
+class UserParameters(Base):
+    """Définit la table 'user_parameters' pour stocker les informations spécifiques à l'utilisateur."""
+    __tablename__ = "user_parameters"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True) # Clé étrangère vers la table 'users'
+
+    # Champs spécifiques pour le coach sportif
+    age = Column(Integer, nullable=True)
+    weight_kg = Column(Float, nullable=True) # Poids en kg
+    height_cm = Column(Integer, nullable=True) # Taille en cm
+    
+    # Objectif sportif (Ex: Marathon, 10km, Perte de poids)
+    sport_goal = Column(String, nullable=True) 
+    
+    # Niveau d'activité (Ex: Débutant, Intermédiaire, Expert)
+    activity_level = Column(String, nullable=True) 
+    
+    # Relation : le propriétaire de ces paramètres
+    owner = relationship("User", back_populates="parameters")
+    
 # --- 3. Utilitaires de BDD ---
 
 def get_db() -> Generator:

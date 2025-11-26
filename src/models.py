@@ -1,20 +1,18 @@
-# from pydantic import BaseModel
-# from datetime import datetime
-# from pydantic import EmailStr
-# from typing import Optional
-# from pydantic.types import conint
+# src/models.py
 
+from pydantic import BaseModel, Field
+from typing import Optional
 
-# #all the fields that we need from the user to create a post
-# class PostBase(BaseModel):
-#     title: str
-#     content: str
-#     published: bool = True
-
-
-# class PostCreate(PostBase):
-#     pass
-
-# class UserCreate(BaseModel):
-#     email: EmailStr
-#     password: str
+# Schéma Pydantic pour les informations utilisateur (servira pour l'API)
+class UserParametersBase(BaseModel):
+    """Schéma de base pour les paramètres utilisateur."""
+    age: Optional[int] = Field(None, ge=1, le=120)
+    weight_kg: Optional[float] = Field(None, ge=20.0, le=300.0)
+    height_cm: Optional[int] = Field(None, ge=50, le=250)
+    
+    sport_goal: Optional[str] = Field(None, max_length=100)
+    activity_level: Optional[str] = Field(None, max_length=50)
+    
+    # Permet à FastAPI d'utiliser ce schéma avec l'ORM SQLAlchemy
+    class Config:
+        from_attributes = True # Ancien orm_mode = True

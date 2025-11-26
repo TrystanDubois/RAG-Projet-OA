@@ -5,6 +5,7 @@ import ChatArea from './ChatArea';
 import LoginPage from './LoginPage'; // Importe la nouvelle page de connexion
 import { AuthProvider, useAuth } from './AuthContext'; // Importe le fournisseur et le hook
 import DocumentsPage from './DocumentsPage'; 
+import UserInfoPage from './UserInfoPage';
 
 // Composant qui représente l'interface utilisateur COMPLÈTE (Sidebar + ChatArea)
 const MainAppContent = () => {
@@ -26,7 +27,8 @@ const MainAppContent = () => {
             {/* Zone de Contenu Principal */}
             <div style={{ flexGrow: 1, overflowY: 'auto' }}>
                 {activePage === 'chat' && <ChatArea />}
-                {activePage === 'documents' && <DocumentsPage />} {/* Afficher la nouvelle page */}
+                {activePage === 'documents' && <DocumentsPage />} 
+                {activePage === 'user-info' && <UserInfoPage />}
             </div>
         </div>
     );
