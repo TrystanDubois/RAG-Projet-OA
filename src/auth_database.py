@@ -44,6 +44,9 @@ class UserParameters(Base):
     age = Column(Integer, nullable=True)
     weight_kg = Column(Float, nullable=True) # Poids en kg
     height_cm = Column(Integer, nullable=True) # Taille en cm
+    gender = Column(String, nullable=True)  # 'Homme' ou 'Femme'
+    time_per_week_hours = Column(Float, nullable=True) # Temps disponible en heures
+    sleep_hours = Column(Float, nullable=True)        # Temps de sommeil en heures
     
     # Objectif sportif (Ex: Marathon, 10km, Perte de poids)
     sport_goal = Column(String, nullable=True) 

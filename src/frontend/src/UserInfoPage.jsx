@@ -13,6 +13,9 @@ const UserInfoPage = () => {
         height_cm: '',
         sport_goal: '',
         activity_level: 'Débutant', // Valeur par défaut
+        gender: 'Non spécifié', // Valeur par défaut
+        time_per_week_hours: '',
+        sleep_hours: '',
     });
     
     const [isLoading, setIsLoading] = useState(true);
@@ -50,6 +53,9 @@ const UserInfoPage = () => {
                 height_cm: data.height_cm || '',
                 sport_goal: data.sport_goal || '',
                 activity_level: data.activity_level || 'Débutant',
+                gender: data.gender || 'Non spécifié', // Utilise 'Non spécifié' si null
+                time_per_week_hours: data.time_per_week_hours || '', // Utilise '' si null
+                sleep_hours: data.sleep_hours || '', // Utilise '' si null
             });
             setStatusMessage('Informations chargées.');
 
@@ -195,6 +201,54 @@ const UserInfoPage = () => {
                             placeholder="Ex: 180"
                         />
                     </div>
+                </div>
+                {/* CHAMP SEXE/GENRE */}
+                <div>
+                    <label htmlFor="gender" style={labelStyle}>Sexe / Genre</label>
+                    <select
+                        id="gender"
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleChange}
+                        style={inputStyle}
+                    >
+                        <option value="Non spécifié">Non spécifié</option>
+                        <option value="Homme">Homme</option>
+                        <option value="Femme">Femme</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+                </div>
+
+                {/* CHAMP TEMPS DISPONIBLE PAR SEMAINE */}
+                <div>
+                    <label htmlFor="time_per_week_hours" style={labelStyle}>Temps disponible pour le sport (heures/semaine)</label>
+                    <input
+                        type="number"
+                        id="time_per_week_hours"
+                        name="time_per_week_hours"
+                        value={formData.time_per_week_hours}
+                        onChange={handleChange}
+                        style={inputStyle}
+                        placeholder="Ex: 5.5"
+                        min="0"
+                        max="100"
+                    />
+                </div>
+
+                {/* CHAMP TEMPS DE SOMMEIL */}
+                <div>
+                    <label htmlFor="sleep_hours" style={labelStyle}>Temps de sommeil (heures/nuit)</label>
+                    <input
+                        type="number"
+                        id="sleep_hours"
+                        name="sleep_hours"
+                        value={formData.sleep_hours}
+                        onChange={handleChange}
+                        style={inputStyle}
+                        placeholder="Ex: 7.5"
+                        min="0"
+                        max="24"
+                    />
                 </div>
 
                 {/* CHAMP OBJECTIF SPORTIF */}
