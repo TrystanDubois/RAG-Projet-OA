@@ -11,3 +11,7 @@ docker-compose up -d
 (.venv) PS C:\Users\tryst\Desktop\ECE cours\ING5\OA\LLMs_Fondation\PromptEngineering\Projet\src\frontend\src> 
 npm run dev
 
+## git hub
+git add .
+git commit -m ""
+git push
