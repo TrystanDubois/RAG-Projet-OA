@@ -12,6 +12,11 @@ class UserParametersBase(BaseModel):
     gender: Optional[str] = Field(None, max_length=10) # 'Homme', 'Femme', 'Autre'
     time_per_week_hours: Optional[float] = Field(None, ge=0.0, le=100.0)
     sleep_hours: Optional[float] = Field(None, ge=0.0, le=24.0)
+    # Nutrition
+    dietary_restrictions: Optional[str] = Field(None, max_length=255) 
+    # Entraînement
+    equipment_available: Optional[str] = Field(None, max_length=100)
+    training_preference: Optional[str] = Field(None, max_length=50)
     
     sport_goal: Optional[str] = Field(None, max_length=100)
     activity_level: Optional[str] = Field(None, max_length=50)

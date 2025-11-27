@@ -1,4 +1,4 @@
-// src/frontend/src/UserInfoPage.jsx
+// src/frontend/src/UserInfoPage.jsx - VERSION CORRIGÉE
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
@@ -13,9 +13,13 @@ const UserInfoPage = () => {
         height_cm: '',
         sport_goal: '',
         activity_level: 'Débutant', // Valeur par défaut
-        gender: 'Non spécifié', // Valeur par défaut
+        // 💡 CORRECTION 3 : Raccourci à 10 caractères MAX pour respecter Pydantic
+        gender: 'Non-défini', 
         time_per_week_hours: '',
         sleep_hours: '',
+        dietary_restrictions: 'Aucune', 
+        equipment_available: 'Aucun',  
+        training_preference: 'Mixte',  
     });
     
     const [isLoading, setIsLoading] = useState(true);
@@ -45,17 +49,19 @@ const UserInfoPage = () => {
 
             const data = await response.json();
             
-            // Met à jour l'état avec les données récupérées. 
-            // L'API renvoie des valeurs nulles si pas d'enregistrement, donc on les gère.
             setFormData({
                 age: data.age || '',
                 weight_kg: data.weight_kg || '',
                 height_cm: data.height_cm || '',
                 sport_goal: data.sport_goal || '',
                 activity_level: data.activity_level || 'Débutant',
-                gender: data.gender || 'Non spécifié', // Utilise 'Non spécifié' si null
-                time_per_week_hours: data.time_per_week_hours || '', // Utilise '' si null
-                sleep_hours: data.sleep_hours || '', // Utilise '' si null
+                // Utilise 'Non-défini' si la valeur BDD est null/vide (même correction)
+                gender: data.gender || 'Non-défini', 
+                time_per_week_hours: data.time_per_week_hours || '',
+                sleep_hours: data.sleep_hours || '',
+                dietary_restrictions: data.dietary_restrictions || 'Aucune', 
+                equipment_available: data.equipment_available || 'Aucun',
+                training_preference: data.training_preference || 'Mixte',
             });
             setStatusMessage('Informations chargées.');
 
@@ -77,35 +83,54 @@ const UserInfoPage = () => {
         const { name, value, type } = e.target;
         setFormData(prev => ({
             ...prev,
-            // Convertit en nombre si c'est un champ numérique
+            // Conserve la valeur comme chaîne vide "" si l'utilisateur efface,
+            // ce qui sera géré par la soumission (null)
             [name]: type === 'number' ? (value === '' ? '' : Number(value)) : value
         }));
-        setStatusMessage(''); // Efface le message de statut dès qu'on modifie
+        setStatusMessage('');
     };
 
     // --- 3. FONCTION DE SAUVEGARDE DES DONNÉES ---
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // 💡 Correction 2: Si le formulaire n'est pas valide, on sort avant de sauvegarder
+        if (!isFormValid()) {
+            setStatusMessage('Veuillez remplir les champs obligatoires pour enregistrer.');
+            return;
+        }
+
         setIsSaving(true);
         setStatusMessage('Sauvegarde en cours...');
 
+        // 💡 Correction 1 : Préparation du payload avec conversion des chaînes vides en null
+        const dataToSend = { ...formData };
+    
+        for (const key in dataToSend) {
+            // Convertit l'état `''` (chaîne vide) en `null` pour Pydantic
+            if (dataToSend[key] === '') {
+                dataToSend[key] = null;
+            } 
+            // ℹ️ La conversion en parseFloat pour les nombres est technique, 
+            // mais pas obligatoire si vous faites confiance à `handleChange` 
+            // et au format JSON. On la garde pour plus de robustesse sur les champs numériques.
+            else if (['age', 'weight_kg', 'height_cm', 'time_per_week_hours', 'sleep_hours'].includes(key) && dataToSend[key] !== null) {
+                 // Assurez-vous que les données non-vides sont des nombres avant d'envoyer.
+                dataToSend[key] = parseFloat(dataToSend[key]);
+            }
+        }
+        
         try {
             const token = getAccessToken();
-            const payload = {
-                // S'assure d'envoyer null pour les champs vides ou zéros invalides
-                ...formData,
-                age: formData.age || null,
-                weight_kg: formData.weight_kg || null,
-                height_cm: formData.height_cm || null,
-            };
-
+            
+            // 💡 Correction 1: Utilisation du dataToSend CORRECTEMENT nettoyé
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(dataToSend), // <<< UTILISE DATA TO SEND
             });
 
             if (!response.ok) {
@@ -123,20 +148,32 @@ const UserInfoPage = () => {
         }
     };
     
-    // --- 4. Rendu du Composant ---
+    // 💡 Correction 2 : Déplacé ici pour être accessible par le JSX du bouton
+    const requiredFields = ['age', 'weight_kg', 'height_cm', 'time_per_week_hours', 'sleep_hours'];
+
+    const isFormValid = () => {
+        const allRequiredFilled = requiredFields.every(key => 
+            // Un champ est considéré comme 'rempli' s'il n'est pas la chaîne vide.
+            // On ignore le `null` ici car `formData` ne devrait contenir que `''` ou la valeur
+            formData[key] !== ''
+        );
+        return allRequiredFilled;
+    };
     
-    // Styles de base (ajustez-les selon votre fichier index.css si besoin)
+    // --- 4. Rendu du Composant ---
+    // (Styles non modifiés pour la concision)
     const containerStyle = { padding: '30px', maxWidth: '900px', margin: '0 auto', fontFamily: 'Arial, sans-serif' };
     const headerStyle = { color: 'var(--primary-blue)', borderBottom: '2px solid var(--border-grey)', paddingBottom: '10px', marginBottom: '30px' };
     const labelStyle = { display: 'block', fontWeight: 'bold', marginBottom: '5px', color: 'var(--text-dark)' };
     const inputStyle = { width: '100%', padding: '10px', marginBottom: '20px', border: '1px solid var(--border-grey)', borderRadius: '6px', fontSize: '16px', boxSizing: 'border-box' };
     const buttonStyle = { 
         padding: '12px 25px', 
-        backgroundColor: isSaving ? 'var(--text-light-grey)' : 'var(--primary-blue)', 
+        backgroundColor: isSaving || !isFormValid() ? 'var(--text-light-grey)' : 'var(--primary-blue)', // Changer la couleur si désactivé
         color: 'white', 
         border: 'none', 
         borderRadius: '6px', 
-        cursor: isSaving ? 'not-allowed' : 'pointer', 
+        // 💡 Correction 2: Ajout de isFormValid() pour désactiver le bouton
+        cursor: isSaving || !isFormValid() ? 'not-allowed' : 'pointer', 
         fontSize: '16px', 
         fontWeight: 'bold',
         transition: 'background-color 0.2s',
@@ -212,7 +249,8 @@ const UserInfoPage = () => {
                         onChange={handleChange}
                         style={inputStyle}
                     >
-                        <option value="Non spécifié">Non spécifié</option>
+                        {/* 💡 CORRECTION 3 : Changement de la valeur pour respecter les 10 caractères du backend */}
+                        <option value="Non-défini">Non-défini</option>
                         <option value="Homme">Homme</option>
                         <option value="Femme">Femme</option>
                         <option value="Autre">Autre</option>
@@ -250,6 +288,56 @@ const UserInfoPage = () => {
                         max="24"
                     />
                 </div>
+                {/* CHAMP RESTRICTIONS ALIMENTAIRES */}
+                <div>
+                    <label htmlFor="dietary_restrictions" style={labelStyle}>Restrictions Alimentaires</label>
+                    <select
+                        id="dietary_restrictions"
+                        name="dietary_restrictions"
+                        value={formData.dietary_restrictions}
+                        onChange={handleChange}
+                        style={inputStyle}
+                    >
+                        <option value="Aucune">Aucune</option>
+                        <option value="Végétarien">Végétarien</option>
+                        <option value="Végétalien">Végétalien (Vegan)</option>
+                        <option value="Sans Gluten">Sans Gluten</option>
+                        <option value="Sans Lactose">Sans Lactose</option>
+                        <option value="Autres">Autres (Préciser dans le chat)</option>
+                    </select>
+                </div>
+                {/* CHAMP MATÉRIEL DISPONIBLE */}
+                <div>
+                    <label htmlFor="equipment_available" style={labelStyle}>Matériel d'Entraînement Disponible</label>
+                    <select
+                        id="equipment_available"
+                        name="equipment_available"
+                        value={formData.equipment_available}
+                        onChange={handleChange}
+                        style={inputStyle}
+                    >
+                        <option value="Aucun">Aucun (Corps seulement)</option>
+                        <option value="Haltères et Élastiques">Haltères et Élastiques</option>
+                        <option value="Home Gym Complet">Home Gym Complet (Banc, Rack...)</option>
+                        <option value="Salle de Sport">Salle de Sport (Toutes machines)</option>
+                    </select>
+                </div>
+                {/* CHAMP PRÉFÉRENCE D'ENTRAÎNEMENT */}
+                <div>
+                    <label htmlFor="training_preference" style={labelStyle}>Préférence d'Entraînement</label>
+                    <select
+                        id="training_preference"
+                        name="training_preference"
+                        value={formData.training_preference}
+                        onChange={handleChange}
+                        style={inputStyle}
+                    >
+                        <option value="Mixte">Mixte (Force et Cardio)</option>
+                        <option value="Force/Musculation">Force / Musculation</option>
+                        <option value="Endurance/Cardio">Endurance / Cardio</option>
+                        <option value="HIIT/Court">HIIT / Court</option>
+                    </select>
+                </div>
 
                 {/* CHAMP OBJECTIF SPORTIF */}
                 <div>
@@ -282,12 +370,23 @@ const UserInfoPage = () => {
                     </select>
                 </div>
                 
-                <button type="submit" style={buttonStyle} disabled={isSaving}>
+                {/* 💡 Correction 2 : Utilisation de isFormValid() pour désactiver le bouton */}
+                <button 
+                    type="submit" 
+                    style={buttonStyle} 
+                    disabled={isSaving || !isFormValid()}
+                >
                     {isSaving ? 'Sauvegarde en cours...' : 'Enregistrer Mes Informations'}
                 </button>
 
                 {statusMessage && <div style={messageStyle}>{statusMessage}</div>}
-
+                
+                {/* Affiche le message d'erreur si la validation front-end échoue */}
+                {!isFormValid() && (
+                    <div style={{ color: 'orange', marginTop: '10px' }}>
+                        Veuillez remplir l'âge, le poids, la taille, le temps d'entraînement et le temps de sommeil pour enregistrer.
+                    </div>
+                )}
             </form>
         </div>
     );

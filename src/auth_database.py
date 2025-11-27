@@ -47,6 +47,11 @@ class UserParameters(Base):
     gender = Column(String, nullable=True)  # 'Homme' ou 'Femme'
     time_per_week_hours = Column(Float, nullable=True) # Temps disponible en heures
     sleep_hours = Column(Float, nullable=True)        # Temps de sommeil en heures
+    # Nutrition
+    dietary_restrictions = Column(String, nullable=True)
+    # Entraînement
+    equipment_available = Column(String, nullable=True)  # Ex: Haltères, Salle complète, Aucun
+    training_preference = Column(String, nullable=True)  # Ex: Force, Endurance, HIIT, Mixte
     
     # Objectif sportif (Ex: Marathon, 10km, Perte de poids)
     sport_goal = Column(String, nullable=True) 
@@ -71,6 +76,7 @@ def get_db() -> Generator:
 def create_tables():
     """Crée toutes les tables définies (ici, la table 'users') si elles n'existent pas."""
     # Base.metadata.create_all(bind=engine) crée la table 'users' dans la BDD
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(bind=engine)
 
 # Exécuter la création des tables au moment de l'import
