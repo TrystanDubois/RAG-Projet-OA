@@ -98,7 +98,7 @@ const DocumentsPage = () => {
             <header style={{ marginBottom: '30px', borderBottom: '1px solid var(--border-grey)', paddingBottom: '20px' }}>
                 <h1 style={{ color: 'var(--text-dark)', fontSize: '2em' }}>📚 Gestion de la Base de Connaissances</h1>
                 <p style={{ color: 'var(--text-light-grey)', marginTop: '10px' }}>
-                    Ajoutez ou supprimez des fichiers dans le dossier `./docs` du backend, puis cliquez sur Réindexer pour mettre à jour le LLM.
+                    Ajoutez ou supprimez des fichiers dans le dossier  puis cliquez sur Réindexer pour mettre à jour le LLM.
                 </p>
             </header>
 
@@ -126,7 +126,7 @@ const DocumentsPage = () => {
                         transition: 'background-color 0.2s',
                     }}
                 >
-                    {isUpdating ? '⏳ Réindexation en cours...' : '🚀 Réindexer les Documents RAG'}
+                    {isUpdating ? 'Réindexation en cours...' : 'Réindexer les Documents RAG'}
                 </button>
                 
                 {updateStatus.message && (
