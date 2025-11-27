@@ -15,11 +15,10 @@ const NavIcon = ({ active }) => (
 
 const navSections = [
     { name: "Mon Coach IA", id : 'chat'}, 
+    { name: "Mon Programme", id : 'program'},
     { type: 'divider' },
     { name: "Mes Informations", id: 'user-info'},
     { name: "Mes Documents", id : 'documents' },
-    { name: "Mes Informations de Course" },
-    { name: "Mon Alimentation" },
     { type: 'divider' },
     { name: "Paramètres" },
     { name: "Aide" },

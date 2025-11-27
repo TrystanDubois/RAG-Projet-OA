@@ -223,6 +223,83 @@ Question: {query}
     )
     return chain.invoke(query)
 
+# --- NOUVELLE FONCTION DE GÉNÉRATION DE PROGRAMME RAG ---
+
+def rag_generate_program(user_params: UserParametersBase):
+    """
+    Génère un programme sportif/nutritionnel hautement personnalisé
+    en utilisant les paramètres utilisateur et le RAG.
+    """
+    global RAG_RETRIEVER
+    
+    if RAG_RETRIEVER is None:
+        return "Le système RAG est en cours d'initialisation. Veuillez réessayer."
+
+    # 1. Préparation des paramètres utilisateur pour le prompt
+    # Création d'une chaîne de caractères descriptive et structurée
+    user_data_str = f"""
+--- PARAMÈTRES UTILISATEUR POUR LA PERSONNALISATION ---
+- Âge: {user_params.age if user_params.age else 'Non spécifié'} ans
+- Sexe: {user_params.gender if user_params.gender else 'Non spécifié'}
+- Poids: {user_params.weight_kg if user_params.weight_kg else 'Non spécifié'} kg
+- Taille: {user_params.height_cm if user_params.height_cm else 'Non spécifié'} cm
+- Objectif Sportif Principal: {user_params.sport_goal if user_params.sport_goal else 'Non spécifié'}
+- Niveau Actuel: {user_params.activity_level if user_params.activity_level else 'Non spécifié'}
+- Temps d'Entraînement Disponible / Semaine: {user_params.time_per_week_hours if user_params.time_per_week_hours else 'Non spécifié'} heures
+- Temps de Sommeil Moyen: {user_params.sleep_hours if user_params.sleep_hours else 'Non spécifié'} heures / nuit
+- Matériel Disponible: {user_params.equipment_available if user_params.equipment_available else 'Non spécifié'}
+- Préférence d'Entraînement (Style): {user_params.training_preference if user_params.training_preference else 'Non spécifié'}
+- Restrictions Alimentaires (Nutrition): {user_params.dietary_restrictions if user_params.dietary_restrictions else 'Aucune'}
+"""
+    
+    # 2. Définition du Prompt Système Principal
+    template = f"""
+You are a highly qualified and recognized **Elite Sports Coach** and **Performance Nutritionist**.
+Your task is to generate a comprehensive, structured, and highly personalized training program (both sport and nutrition) for the user based on their specific parameters and the expert documents provided (Context).
+
+**CRUCIAL INSTRUCTIONS:**
+1. **Goal:** The program must directly address the user's **Sport Goal** and be tailored to their **Activity Level**, **Time Available**, and **Equipment Available**.
+2. **Integration:** Integrate the knowledge from the **Context** provided by the expert documents into the structure, intensity, and rationale of the program.
+3. **Structure & Format:**
+    - The output **MUST** be structured and easy to read (using detailed Markdown).
+    - Start with a personalized summary motivation based on the user's goal.
+    - Provide a **Training Plan** (4 weeks) detailed by day (Running, Strength, Rest, etc.).
+    - Provide concise **Nutrition Recommendations** based on their goal and dietary restrictions.
+    - Provide a section with **Key Advice** (Sleep, Recovery, Hydration).
+4. **Language:** Respond entirely in **French**.
+5. **Program Duration:** The plan must cover **4 weeks** in detail.
+
+{user_data_str}
+
+Context (Expert Documents):
+{{context}}
+
+**Program Generation Request:** Generate the personalized 4-week training and nutrition program now.
+"""
+    
+    prompt = ChatPromptTemplate.from_template(template)
+    # On utilise une température plus élevée pour encourager la créativité et la personnalisation du programme
+    model = ChatOpenAI(model_name=settings.LLM_MODEL, temperature=0.7) 
+    
+    # Requête spécifique pour le retriever afin de récupérer le contexte le plus pertinent
+    rag_query_for_retriever = f"Conseils d'entraînement et de nutrition pour un objectif de {user_params.sport_goal} avec un niveau {user_params.activity_level}. Matériel disponible : {user_params.equipment_available}."
+    
+    # La chaîne LangChain:
+    chain = (
+        {
+            # Récupère le contexte en utilisant la requête spécifique
+            "context": (lambda x: rag_query_for_retriever) | RAG_RETRIEVER,
+            # Le champ 'query' est obligatoire mais son contenu est ignoré
+            "query": RunnablePassthrough() 
+        } 
+        | prompt
+        | model
+        | StrOutputParser()
+    )
+    
+    # Exécuter la chaîne.
+    return chain.invoke("Start generation")
+
 # --- DÉMARRAGE DE L'APPLICATION (Gère la BDD et le RAG) ---
 
 @app.on_event("startup")
@@ -461,6 +538,49 @@ def get_documents_list(
                 pass 
             
     return {"documents": documents_list}
+
+# --- NOUVELLE ROUTE : GÉNÉRATION DU PROGRAMME PERSONNALISÉ ---
+
+@app.post("/program/generate")
+def generate_user_program(
+    current_user: Annotated[User, Depends(get_current_user_from_token)],
+    db: Annotated[Session, Depends(get_db)]
+):
+    """
+    Génère un programme d'entraînement et de nutrition personnalisé 
+    en utilisant les paramètres de l'utilisateur et le RAG.
+    """
+    print(f"Demande de génération de programme reçue de: {current_user.email}")
+    
+    # 1. Récupérer les paramètres utilisateur depuis la BDD
+    parameters = db.query(UserParameters).filter(UserParameters.user_id == current_user.id).first()
+    
+    # 2. Vérifier si les paramètres existent
+    if parameters is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Les paramètres utilisateur ne sont pas renseignés. Veuillez remplir la page 'Mon Profil' au préalable pour générer un programme."
+        )
+        
+    # 3. Convertir l'objet SQLAlchemy en modèle Pydantic pour une utilisation propre
+    user_params_base = UserParametersBase.model_validate(parameters)
+
+    # 4. Appeler la logique de génération LLM+RAG
+    try:
+        program_output = rag_generate_program(user_params_base)
+        return {
+            "program": program_output,
+            "user_email": current_user.email,
+            "model": settings.LLM_MODEL
+        }
+    except Exception as e:
+        print(f"Erreur lors de la génération du programme RAG: {e}")
+        # Soulever une exception HTTP pour le client
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors de la génération du programme. Cause: {e.__class__.__name__}"
+        )
+
 
 # --- BLOC D'EXÉCUTION CONSOLE (Mode Interactif) ---
 

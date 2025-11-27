@@ -6,6 +6,7 @@ import LoginPage from './LoginPage'; // Importe la nouvelle page de connexion
 import { AuthProvider, useAuth } from './AuthContext'; // Importe le fournisseur et le hook
 import DocumentsPage from './DocumentsPage'; 
 import UserInfoPage from './UserInfoPage';
+import ProgramPage from './ProgramPage';
 
 // Composant qui représente l'interface utilisateur COMPLÈTE (Sidebar + ChatArea)
 const MainAppContent = () => {
@@ -29,6 +30,7 @@ const MainAppContent = () => {
                 {activePage === 'chat' && <ChatArea />}
                 {activePage === 'documents' && <DocumentsPage />} 
                 {activePage === 'user-info' && <UserInfoPage />}
+                {activePage === 'program' && <ProgramPage />}
             </div>
         </div>
     );

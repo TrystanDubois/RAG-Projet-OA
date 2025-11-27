@@ -15,3 +15,6 @@ npm run dev
 git add .
 git commit -m ""
 git push
+
+## Pour installer la génération du programme
+npm install react-markdown
