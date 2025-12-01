@@ -1,4 +1,4 @@
-// ChatArea.jsx (Version Professionnelle)
+// ChatArea.jsx 
 import React, { useState } from 'react';
 import './index.css';
 import { useAuth } from './AuthContext';
@@ -83,7 +83,6 @@ const ChatArea = () => {
                     <div key={index} style={{
                         display: 'flex', 
                         padding: '20px', 
-                        // Utilisation des chaînes de caractères pour les variables CSS
                         backgroundColor: msg.role === 'assistant' ? 'var(--bg-white)' : 'transparent', 
                         borderRadius: '12px', 
                         marginBottom: '15px', 

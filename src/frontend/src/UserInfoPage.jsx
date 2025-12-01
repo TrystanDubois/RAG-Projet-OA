@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
 // -------------------------------------------------------------------
-// 1. DÉFINITION DES STYLES MODERNES (Inspirés du design minimaliste)
+// 1. DÉFINITION DES STYLES MODERNES 
 // -------------------------------------------------------------------
 
-// Couleurs (simule l'utilisation de variables CSS pour la cohérence)
+// Couleurs 
 const COLORS = {
     primaryBlue: '#3B82F6',
     lightBlue: '#EFF6FF',

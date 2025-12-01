@@ -1,4 +1,4 @@
-/* index.css (Version Professionnelle) */
+/* index.css */
 
 :root {
   /* ==================================== */
@@ -6,12 +6,12 @@
   /* ==================================== */
   --primary-blue: #535BF2; 
   
-  /* NOUVEAU: Fond principal très clair ou blanc */
+  /*  Fond principal très clair ou blanc */
   --light-bg: #EAEFF4; 
-  /* ANCIEN FOND FONCÉ pour les éléments sombres */
+  /* FOND FONCÉ pour les éléments sombres */
   --dark-blue-bg: #1A1A2E; 
 
-  /* NOUVEAU: Fond de la carte de connexion (Blanc pur pour le contraste) */
+  /*  Fond de la carte de connexion (Blanc pur pour le contraste) */
   --card-bg: #FFFFFF; 
   
   /* Texte */
@@ -27,7 +27,6 @@
   /* Ombre plus subtile pour le light mode */
   --shadow-dark: 0 4px 15px rgba(0, 0, 0, 0.1);
 
-  /* Sidebar (On peut garder un fond plus soutenu pour la sidebar pour la distinguer) */
   --sidebar-bg: #FFFFFF; /* Gardons la sidebar blanche dans ce mode */
 }
 
@@ -41,10 +40,6 @@ body {
   min-width: 320px;
   min-height: 100vh;
   
-  /* Retirons l'ancien background-color */
-  /* background-color: var(--light-bg); */
-
-  /* NOUVEAU: Ajout du style pour l'animation */
   color: var(--text-dark); 
   
   /* Réglages pour l'arrière-plan animé */

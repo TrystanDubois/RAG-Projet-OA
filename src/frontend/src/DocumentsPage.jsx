@@ -1,8 +1,8 @@
-// src/frontend/src/DocumentsPage.jsx (Version Améliorée)
+// src/frontend/src/DocumentsPage.jsx 
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import './index.css'; // S'assure que les variables CSS sont chargées
+import './index.css';
 
 const DocumentsPage = () => {
     const { getAccessToken, VITE_API_BASE_URL } = useAuth();

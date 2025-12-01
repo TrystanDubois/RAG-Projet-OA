@@ -1,4 +1,4 @@
-// src/frontend/src/LoginPage.jsx (Version finale et corrigée)
+// src/frontend/src/LoginPage.jsx
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import './index.css'; 
@@ -6,11 +6,10 @@ import './index.css';
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    // ⚠️ DÉFINI À FALSE : Le mode par défaut est 'Se connecter'
     const [isRegister, setIsRegister] = useState(false); 
     const [error, setError] = useState('');
     
-    // Récupère les fonctions d'AuthContext (maintenant avec 'register')
+    // Récupère les fonctions d'AuthContext
     const { login, register } = useAuth(); 
 
     const handleSubmit = async (e) => {

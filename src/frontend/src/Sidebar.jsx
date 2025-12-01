@@ -1,4 +1,4 @@
-// Sidebar.jsx (Version finale avec support de l'authentification)
+// Sidebar.jsx 
 import React from 'react';
 import './index.css';
 
@@ -24,7 +24,7 @@ const navSections = [
     { name: "Aide" },
 ];
 
-// Le composant accepte maintenant les props onLogout et userEmail
+// accepte  les props onLogout et userEmail
 const Sidebar = ({ onLogout, userEmail, onNavigate, activePage}) => { 
     
     // Extrait la première lettre de l'email pour l'avatar

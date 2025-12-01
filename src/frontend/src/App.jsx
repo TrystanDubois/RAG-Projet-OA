@@ -1,9 +1,9 @@
-// src/frontend/src/App.jsx (Nouveau Contenu)
+// src/frontend/src/App.jsx 
 import React, {useState} from 'react';
 import Sidebar from './Sidebar';
 import ChatArea from './ChatArea';
-import LoginPage from './LoginPage'; // Importe la nouvelle page de connexion
-import { AuthProvider, useAuth } from './AuthContext'; // Importe le fournisseur et le hook
+import LoginPage from './LoginPage'; 
+import { AuthProvider, useAuth } from './AuthContext'; 
 import DocumentsPage from './DocumentsPage'; 
 import UserInfoPage from './UserInfoPage';
 import ProgramPage from './ProgramPage';
@@ -15,7 +15,6 @@ const MainAppContent = () => {
     if (!isLoggedIn){
         return <LoginPage/>;
     }
-    // Note: Vous devrez mettre à jour Sidebar.jsx pour accepter 'logout' et 'userEmail'
     return (
         <div style={{ display: 'flex', height: '100vh', width: '100%' }}>
             {/* Passe la fonction de déconnexion à la Sidebar */}

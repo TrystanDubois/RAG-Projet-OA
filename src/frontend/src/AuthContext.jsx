@@ -20,7 +20,6 @@ export const AuthProvider = ({ children }) => {
     // Fonction interne pour stocker le token et l'email dans l'état et localStorage
     const setAuthData = (accessToken, email) => {
         setToken(accessToken);
-        // 📧 CORRECTION : S'assure de stocker l'email
         setUserEmail(email); 
         localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
         localStorage.setItem(USER_STORAGE_KEY, email);
@@ -39,11 +38,10 @@ export const AuthProvider = ({ children }) => {
         return token;
     };
     
-    // 🔑 FONCTION LOGIN : Gère l'appel API /token (et stocke le bon email)
+    // FONCTION LOGIN : Gère l'appel API /token (et stocke le bon email)
     const login = async (email, password) => {
         const url = `${VITE_API_BASE_URL}/token`;
 
-        // FastAPI/OAuth2PasswordRequestForm attend 'application/x-www-form-urlencoded'
         const formData = new URLSearchParams();
         formData.append('username', email); // Le champ attendu par FastAPI est 'username'
         formData.append('password', password);
@@ -51,7 +49,7 @@ export const AuthProvider = ({ children }) => {
         const response = await fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded', // CRUCIAL
+                'Content-Type': 'application/x-www-form-urlencoded', 
             },
             body: formData.toString(),
         });
@@ -62,7 +60,6 @@ export const AuthProvider = ({ children }) => {
         }
 
         const data = await response.json();
-        // 📧 CORRECTION : Passe la variable 'email' à setAuthData
         setAuthData(data.access_token, email); 
     };
     
