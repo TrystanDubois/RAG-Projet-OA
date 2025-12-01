@@ -21,17 +21,20 @@ from auth_database import get_db, User, create_tables, UserParameters
 from auth_utils import get_password_hash, verify_password, create_access_token, decode_token
 from models import UserParametersBase
 
+from starlette.concurrency import run_in_threadpool
 
-from langchain_openai import OpenAIEmbeddings
+#from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.vectorstores import Chroma
 #from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate
+#from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-from langchain.schema import Document
+from langchain_core.documents import Document
 
 #import requests
 
@@ -145,7 +148,8 @@ def initialize_or_update_retriever():
     if not documents:
         print(f"ATTENTION : Aucun document PDF trouvé dans le dossier '{DOCS_PATH}'. Le RAG sera vide.")
         # Crée un retriever vide
-        vectorstore = Chroma.from_documents(documents=[], embedding=OpenAIEmbeddings())
+        #vectorstore = Chroma.from_documents(documents=[], embedding=OpenAIEmbeddings())
+        vectorstore = Chroma.from_documents(documents=[], embedding=GoogleGenerativeAIEmbeddings(model="text-embedding-004"))
         RAG_RETRIEVER = vectorstore.as_retriever()
         return
 
@@ -160,7 +164,8 @@ def initialize_or_update_retriever():
     print(f"-> Divisé en {len(texts)} chunks.")
     
     # 3. Création ou mise à jour (Re-création complète pour la simplicité)
-    embeddings = OpenAIEmbeddings()
+    #embeddings = OpenAIEmbeddings()
+    embeddings = GoogleGenerativeAIEmbeddings(model="text-embedding-004")
     
     # Suppression de l'ancienne DB pour forcer la re-création complète
     if os.path.exists(CHROMA_DB_PATH):
@@ -213,7 +218,8 @@ Context:
 Question: {query}
 """
     prompt = ChatPromptTemplate.from_template(template)
-    model = ChatOpenAI(model_name=settings.LLM_MODEL, temperature=0)
+    #model = ChatOpenAI(model_name=settings.LLM_MODEL, temperature=0)
+    model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
     
     chain = (
         {"context": RAG_RETRIEVER, "query": RunnablePassthrough()} # Utilisation du RAG_RETRIEVER global
@@ -236,7 +242,6 @@ def rag_generate_program(user_params: UserParametersBase):
         return "Le système RAG est en cours d'initialisation. Veuillez réessayer."
 
     # 1. Préparation des paramètres utilisateur pour le prompt
-    # Création d'une chaîne de caractères descriptive et structurée
     user_data_str = f"""
 --- PARAMÈTRES UTILISATEUR POUR LA PERSONNALISATION ---
 - Âge: {user_params.age if user_params.age else 'Non spécifié'} ans
@@ -263,23 +268,24 @@ Your task is to generate a comprehensive, structured, and highly personalized tr
 3. **Structure & Format:**
     - The output **MUST** be structured and easy to read (using detailed Markdown).
     - Start with a personalized summary motivation based on the user's goal.
-    - Provide a **Training Plan** (4 weeks) detailed by day (Running, Strength, Rest, etc.).
+    - Provide a **Training Plan** (6 weeks) detailed by day (Running, Strength, Rest, etc.).
     - Provide concise **Nutrition Recommendations** based on their goal and dietary restrictions.
     - Provide a section with **Key Advice** (Sleep, Recovery, Hydration).
 4. **Language:** Respond entirely in **French**.
-5. **Program Duration:** The plan must cover **4 weeks** in detail.
+5. **Program Duration:** The plan must cover **6 weeks** in detail.
 
 {user_data_str}
 
 Context (Expert Documents):
 {{context}}
 
-**Program Generation Request:** Generate the personalized 4-week training and nutrition program now.
+**Program Generation Request:** Generate the personalized 6-week training and nutrition program now.
 """
     
     prompt = ChatPromptTemplate.from_template(template)
     # On utilise une température plus élevée pour encourager la créativité et la personnalisation du programme
-    model = ChatOpenAI(model_name=settings.LLM_MODEL, temperature=0.7) 
+    #model = ChatOpenAI(model_name=settings.LLM_MODEL, temperature=0.7) 
+    model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
     
     # Requête spécifique pour le retriever afin de récupérer le contexte le plus pertinent
     rag_query_for_retriever = f"Conseils d'entraînement et de nutrition pour un objectif de {user_params.sport_goal} avec un niveau {user_params.activity_level}. Matériel disponible : {user_params.equipment_available}."
@@ -542,7 +548,7 @@ def get_documents_list(
 # --- NOUVELLE ROUTE : GÉNÉRATION DU PROGRAMME PERSONNALISÉ ---
 
 @app.post("/program/generate")
-def generate_user_program(
+async def generate_user_program(
     current_user: Annotated[User, Depends(get_current_user_from_token)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -567,7 +573,7 @@ def generate_user_program(
 
     # 4. Appeler la logique de génération LLM+RAG
     try:
-        program_output = rag_generate_program(user_params_base)
+        program_output = await run_in_threadpool(rag_generate_program, user_params_base)
         return {
             "program": program_output,
             "user_email": current_user.email,

@@ -76,7 +76,6 @@ def get_db() -> Generator:
 def create_tables():
     """Crée toutes les tables définies (ici, la table 'users') si elles n'existent pas."""
     # Base.metadata.create_all(bind=engine) crée la table 'users' dans la BDD
-    Base.metadata.drop_all(engine)
     Base.metadata.create_all(bind=engine)
 
 # Exécuter la création des tables au moment de l'import

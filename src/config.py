@@ -11,12 +11,14 @@ class Settings(BaseSettings):
     """
 
 
-    OPENAI_API_KEY: str
+    #OPENAI_API_KEY: str
+    GEMINI_API_KEY : str
 
     LANGCHAIN_API_KEY: Optional[str] = None # | None signifie que la clé est facultative
     
 
-    LLM_MODEL: str = "gpt-3.5-turbo"
+    #LLM_MODEL: str = "gpt-3.5-turbo"
+    LLM_MODEL: str = "gemini-2.5-flash"
     
     # Taille du chunk (morceau de texte) pour le RAG
     CHUNK_SIZE: int = 1000

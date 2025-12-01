@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import ReactMarkdown from 'react-markdown'; // Sert d'interprétation pour conversion en HTML
+import ReactMarkdown from 'react-markdown';
 
 const ProgramPage = () => {
     const { getAccessToken, VITE_API_BASE_URL } = useAuth();
@@ -13,7 +13,7 @@ const ProgramPage = () => {
 
     const API_URL = `${VITE_API_BASE_URL}/program/generate`;
 
-    // Styles de base pour imiter le design simple
+    // --- 1. STYLES ---
     const styles = {
         container: {
             padding: '40px',
@@ -49,8 +49,8 @@ const ProgramPage = () => {
             borderRadius: '8px',
             padding: '30px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-            whiteSpace: 'pre-wrap', // Pour respecter les retours à la ligne Markdown
             textAlign: 'left',
+            overflowX: 'auto', // Important pour les tableaux larges
         },
         loading: {
             color: '#007bff',
@@ -63,9 +63,27 @@ const ProgramPage = () => {
             fontSize: '18px',
             textAlign: 'center',
             marginTop: '50px',
-        }
+        },
+        table: {
+            width: '100%',
+            borderCollapse: 'collapse',
+            margin: '20px 0',
+        },
+        th: {
+            backgroundColor: '#007bff',
+            color: 'white',
+            padding: '10px',
+            textAlign: 'left',
+            border: '1px solid #ddd',
+        },
+        td: {
+            padding: '10px',
+            border: '1px solid #ddd',
+            verticalAlign: 'top',
+        },
     };
 
+    // --- 2. FONCTION DE GÉNÉRATION ---
     const generateProgram = async () => {
         setIsLoading(true);
         setError(null);
@@ -80,10 +98,10 @@ const ProgramPage = () => {
             }
 
             const response = await fetch(API_URL, {
-                method: 'POST', // Utilisation de POST même si aucune donnée n'est envoyée dans le body
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json', // Nécessaire même si le body est vide
+                    'Content-Type': 'application/json',
                 },
             });
 
@@ -93,7 +111,8 @@ const ProgramPage = () => {
             }
 
             const data = await response.json();
-            setProgram(data.program); // Assurez-vous que le backend renvoie 'program_text'
+            // L'API renvoie le programme dans 'program'. Si votre backend renvoie 'program_text', utilisez setProgram(data.program_text)
+            setProgram(data.program); 
 
         } catch (err) {
             console.error('Erreur de génération de programme:', err);
@@ -102,13 +121,33 @@ const ProgramPage = () => {
             setIsLoading(false);
         }
     };
+
+    // --- 3. COMPOSANTS DE RENDU MARKDOWN PERSONNALISÉS ---
+    // Ces composants appliquent les styles CSS aux éléments HTML générés par ReactMarkdown
+
+    const Table = ({ children }) => <table style={styles.table}>{children}</table>;
+    const Th = ({ children }) => <th style={styles.th}>{children}</th>;
+    const Td = ({ children }) => <td style={styles.td}>{children}</td>;
+    const H1 = ({ children }) => <h1 style={{ color: '#007bff', borderBottom: '2px solid #007bff', paddingBottom: '5px' }}>{children}</h1>;
+    const H2 = ({ children }) => <h2 style={{ color: '#28a745', borderBottom: '1px solid #28a745', paddingBottom: '3px', marginTop: '30px' }}>{children}</h2>;
     
-    // Charger automatiquement le programme au premier montage (optionnel)
-    // useEffect(() => {
-    //     generateProgram();
-    // }, []);
+    // Définition de l'objet de rendu
+    const markdownComponents = {
+        table: Table,
+        thead: ({ children }) => <thead>{children}</thead>,
+        tbody: ({ children }) => <tbody>{children}</tbody>,
+        tr: ({ children }) => <tr>{children}</tr>,
+        th: Th,
+        td: Td,
+        h1: H1,
+        h2: H2,
+        // Ajout de style de base pour les listes
+        ul: ({ children }) => <ul style={{ marginLeft: '20px', paddingLeft: '0' }}>{children}</ul>,
+        li: ({ children }) => <li style={{ marginBottom: '8px' }}>{children}</li>,
+        p: ({ children }) => <p style={{ lineHeight: '1.6', marginBottom: '15px' }}>{children}</p>
+    };
 
-
+    // --- 4. RENDU PRINCIPAL ---
     return (
         <div style={styles.container}>
             <h1 style={styles.header}>Mon Programme d'Entraînement Personnalisé</h1>
@@ -130,8 +169,10 @@ const ProgramPage = () => {
             
             {program && (
                 <div style={styles.programBox}>
-                    {/* Utilise ReactMarkdown pour interpréter le Markdown du LLM */}
-                    <ReactMarkdown>{program}</ReactMarkdown> 
+                    {/* Utilise ReactMarkdown avec les composants personnalisés */}
+                    <ReactMarkdown components={markdownComponents}>
+                        {program}
+                    </ReactMarkdown>
                 </div>
             )}
 
