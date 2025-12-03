@@ -4,14 +4,32 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import ReactMarkdown from 'react-markdown';
 
+// Clé de stockage local pour identifier le programme
+const PROGRAM_STORAGE_KEY = 'userProgramData';
+
 const ProgramPage = () => {
     const { getAccessToken, VITE_API_BASE_URL } = useAuth();
     
-    const [program, setProgram] = useState('');
+    const [program, setProgram] = useState(() => {
+        const savedProgram = localStorage.getItem(PROGRAM_STORAGE_KEY);
+        // Retourne le programme sauvegardé s'il existe, sinon une chaîne vide
+        return savedProgram || '';
+    });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const API_URL = `${VITE_API_BASE_URL}/program/generate`;
+
+    // --- 1. HOOK EFFECT pour la persistance ---
+    // Enregistre le programme dans localStorage chaque fois que la variable 'program' change
+    useEffect(() => {
+        if (program) {
+            localStorage.setItem(PROGRAM_STORAGE_KEY, program);
+        } else {
+            // Si le programme est effacé (par exemple, pour une nouvelle génération), on vide le localStorage
+            localStorage.removeItem(PROGRAM_STORAGE_KEY);
+        }
+    }, [program]);
 
     // --- 1. STYLES ---
     const styles = {
@@ -87,7 +105,7 @@ const ProgramPage = () => {
     const generateProgram = async () => {
         setIsLoading(true);
         setError(null);
-        setProgram('');
+        //setProgram('');
         
         try {
             const token = getAccessToken();
